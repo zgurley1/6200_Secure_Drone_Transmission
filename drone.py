@@ -1,5 +1,5 @@
-import socket
 import json
+import socket
 
 HOST = '127.0.0.1'
 PORT = 5005
@@ -52,3 +52,35 @@ def handle_command(cmd):
         return json.dumps(state)
     else:
         return f"ERROR: Unknown command '{action}'"
+    
+
+def run():
+    print(f"[Drone] Starting up. Listening on {HOST}:{PORT}...")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind( (HOST,PORT) )
+        server.listen(1)
+        print("[DRONE] Waiting for controller connection...\n")
+
+        conn, addr = server.accept()
+        with conn:
+            print(f"[DRONE] Controller connected from {addr}\n")
+            while True:
+                data = conn.recv(4096)
+                if not data:
+                    print("[DRONE] Controller disconnected.")
+                    break
+                raw = data.decode('utf-8').strip()
+                print(f"[DRONE] Received: {raw}")
+
+                try:
+                    cmd = json.loads(raw)
+                    response = handle_command(cmd)
+                except json.JSONDecodeError:
+                    response = "ERROR: Invalid command"
+
+                print(f"[DRONE] Respone: {response}\n")
+                conn.sendall((response + "\n").encode('utf-8'))
+
+if __name__ == "__main__":
+    run()

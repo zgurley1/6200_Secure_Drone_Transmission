@@ -1,9 +1,11 @@
 import json
 import socket
+import argparse
 from config import PSK, pack_message, unpack_message
 
 HOST = '127.0.0.1'
-PORT = 5006
+PORT_DIRECT = 5006
+PORT_MITM = 5008
 
 state = {
     "status": "grounded",
@@ -55,13 +57,13 @@ def handle_command(cmd):
         return f"ERROR: Unknown command '{action}'"
     
 
-def run():
-    print(f"[Drone secure] Starting up. Listening on {HOST}:{PORT}...")
+def run(port):
+    print(f"[Drone secure] Starting up. Listening on {HOST}:{port}...")
     print(f"[Drone Secure] PSK loaded: {PSK.hex()[:16]}...  (first 8 bytes shown)\n")
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server.bind( (HOST,PORT) )
+        server.bind( (HOST,port) )
         server.listen(1)
         print("[DRONE SECURE] Waiting for controller connection...\n")
 
@@ -97,4 +99,14 @@ def run():
                 conn.sendall((response + "\n").encode('utf-8'))
 
 if __name__ == "__main__":
-    run() 
+    parser = argparse.ArgumentParser(description="Drone Simulator (Secure)")
+    parser.add_argument(
+        "--mitm",
+        action="store_true",
+        help=f"Run in MITM mode (port {PORT_MITM}) so the attacker proxy can sit in between"
+    )
+    args = parser.parse_args()
+    port = PORT_MITM if args.mitm else PORT_DIRECT
+    mode_label = "MITM mode" if args.mitm else "Direct mode"
+    print(f"[Drone Secure] {mode_label} — port {port}")
+    run(port)

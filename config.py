@@ -20,7 +20,7 @@ def unpad(data: bytes) -> bytes:
     pad_len = data[-1]
     if pad_len < 1 or pad_len > BLOCK_SIZE:
         raise ValueError("Invalid padding")
-    if data[-pad_len] != bytes([pad_len] * pad_len):
+    if data[-pad_len:] != bytes([pad_len] * pad_len):
         raise ValueError("Padding mismatch")
     return data[:-pad_len]
 

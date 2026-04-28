@@ -1,6 +1,6 @@
 # Secure Drone Command Communication System
 
-Group: Elis Claros, Bogdan Gerasymenko, Zachary Gurley
+Group: Eli Claros, Bogdan Gerasymenko, Zachary Gurley
 
 ## Overview
 
